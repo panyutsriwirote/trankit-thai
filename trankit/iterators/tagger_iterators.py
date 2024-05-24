@@ -307,12 +307,8 @@ class TaggerDataset(Dataset):
                 start += l
 
             # Pad word pieces with special tokens
-            piece_idxs = wordpiece_splitter.encode(
-                flat_pieces,
-                add_special_tokens=True,
-                max_length=self.config.max_input_length,
-                truncation=True
-            )
+            #            <s>                                                          </s>
+            piece_idxs = [5] + wordpiece_splitter.convert_tokens_to_ids(flat_pieces) + [6]
             assert len(piece_idxs) <= self.config.max_input_length
 
             attn_masks = [1] * len(piece_idxs)
