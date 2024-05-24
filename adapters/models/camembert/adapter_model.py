@@ -31,8 +31,8 @@ class CamembertAdapterModel(EmbeddingAdaptersWrapperMixin, ModelWithFlexibleHead
     def __init__(self, config):
         super().__init__(config)
 
-        self.camembert = CamembertModel(config)
-        init(self.camembert)
+        self.roberta = CamembertModel(config)
+        init(self.roberta)
 
         self._init_head_modules()
 
@@ -67,7 +67,7 @@ class CamembertAdapterModel(EmbeddingAdaptersWrapperMixin, ModelWithFlexibleHead
 
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
-        outputs, context = self.camembert(
+        outputs, context = self.roberta(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,

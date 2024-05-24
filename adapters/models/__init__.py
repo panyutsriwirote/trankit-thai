@@ -65,6 +65,8 @@ MODEL_MIXIN_MAPPING = {
     "GPTJModel": GPTJModelAdapterMixin,
     "RobertaLayer": BertLayerAdaptersMixin,
     "RobertaModel": BertModelAdaptersMixin,
+    "CamembertLayer": BertLayerAdaptersMixin,
+    "CamembertModel": BertModelAdaptersMixin,
     "T5Block": T5BlockAdaptersMixin,
     "T5Model": T5ModelAdaptersMixin,
     "T5ForConditionalGeneration": T5ForCondiditionalGenerationWithHeadsMixin,
