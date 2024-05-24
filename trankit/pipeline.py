@@ -15,7 +15,7 @@ from adapters.loading import AdapterLoader
 from datetime import datetime
 import langid
 import gc
-from transformers import XLMRobertaTokenizer
+from transformers import AutoTokenizer
 
 
 def is_string(input):
@@ -79,7 +79,7 @@ class Pipeline:
         self._load_vocabs()
 
         # shared multilingual embeddings
-        print('Loading pretrained XLM-Roberta, this may take a while...')
+        print('Loading pretrained transformer, this may take a while...')
         self._embedding_layers = Multilingual_Embedding(self._config)
         self._embedding_layers.to(self._config.device)
         if self._use_gpu:
@@ -161,7 +161,7 @@ class Pipeline:
         if not os.path.exists(self.master_config._cache_dir):
             os.makedirs(self.master_config._cache_dir, exist_ok=True)
 
-        self.master_config.wordpiece_splitter = XLMRobertaTokenizer.from_pretrained(self.master_config.embedding_name,
+        self.master_config.wordpiece_splitter = AutoTokenizer.from_pretrained(self.master_config.embedding_name,
                                                                                cache_dir=os.path.join(
                                                                                    self.master_config._cache_dir,
                                                                                    self.master_config.embedding_name))

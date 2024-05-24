@@ -1,24 +1,23 @@
 import adapters
-from transformers import XLMRobertaModel
+from transformers import AutoModel
 from adapters import AdapterConfig
 from ..utils.base_utils import *
 
 
-class Base_Model(nn.Module):  # currently assuming the pretrained transformer is XLM-Roberta
+class Base_Model(nn.Module):
     def __init__(self, config, task_name):
         super().__init__()
         self.config = config
         self.task_name = task_name
         # xlmr encoder
-        self.xlmr_dim = 768 if config.embedding_name == 'xlm-roberta-base' else 1024
-        self.xlmr = XLMRobertaModel.from_pretrained(config.embedding_name,
+        self.xlmr_dim = 768
+        self.xlmr = AutoModel.from_pretrained(config.embedding_name,
                                                     cache_dir=os.path.join(config._cache_dir, config.embedding_name),
                                                     output_hidden_states=True)
         adapters.init(self.xlmr)
         self.xlmr_dropout = nn.Dropout(p=config.embedding_dropout)
         # add task adapters
-        task_config = AdapterConfig.load("pfeiffer",
-                                         reduction_factor=6 if config.embedding_name == 'xlm-roberta-base' else 4)
+        task_config = AdapterConfig.load("pfeiffer", reduction_factor=6)
         self.xlmr.add_adapter(task_name, config=task_config)
         self.xlmr.train_adapter([task_name])
         self.xlmr.set_active_adapters([task_name])

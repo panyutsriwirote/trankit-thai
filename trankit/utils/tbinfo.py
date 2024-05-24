@@ -1,4 +1,4 @@
-supported_embeddings = ['xlm-roberta-base', 'xlm-roberta-large']
+supported_embeddings = ['xlm-roberta-base', 'xlm-roberta-large', 'airesearch/wangchanberta-base-att-spm-uncased', 'clicknext/phayathaibert']
 
 saved_model_version = 'v1.0.0'
 
@@ -39,7 +39,7 @@ code2lang = {
     'pl': 'polish', 'pt': 'portuguese', 'ro': 'romanian',
     'ru': 'russian', 'sr': 'serbian', 'sk': 'slovak', 'sl': 'slovenian', 'es': 'spanish',
     'sv': 'swedish', 'ta': 'tamil', 'te': 'telugu', 'tr': 'turkish',
-    'uk': 'ukrainian', 'ur': 'urdu', 'ug': 'uyghur', 'vi': 'vietnamese'
+    'uk': 'ukrainian', 'ur': 'urdu', 'ug': 'uyghur', 'vi': 'vietnamese', 'th': 'thai'
 }
 
 lang2code = {v: k for k, v in code2lang.items()}

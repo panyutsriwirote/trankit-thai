@@ -91,7 +91,7 @@ parser.add_argument('--cpu', action='store_true',
                          'python -m trankit [other options] --cpu\n'
                     )
 parser.add_argument('--embedding', default='xlm-roberta-base', type=str,
-                    choices=['xlm-roberta-base', 'xlm-roberta-large'],
+                    choices=['xlm-roberta-base', 'xlm-roberta-large', 'airesearch/wangchanberta-base-att-spm-uncased', 'clicknext/phayathaibert'],
                     help='Multilingual embedding for trankit. Default: xlm-roberta-base.\n' + \
                          'Example use:\n' + \
                          '-XLM-Roberta base: python -m trankit [other options] --embedding xlm-roberta-base\n' + \

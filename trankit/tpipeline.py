@@ -14,7 +14,7 @@ from .utils.tbinfo import tbname2training_id, lang2treebank
 from .utils.chuliu_edmonds import *
 from tqdm import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup
-from transformers import XLMRobertaTokenizer
+from transformers import AutoTokenizer
 import logging
 
 
@@ -133,21 +133,22 @@ class TPipeline:
 
         # the following variables are used for UD training
         self._train_txt_fpath = training_config['train_txt_fpath'] if 'train_txt_fpath' in training_config else None
-        self._train_conllu_fpath = training_config[
-            'train_conllu_fpath'] if 'train_conllu_fpath' in training_config else None
+        self._train_conllu_fpath = training_config['train_conllu_fpath'] if 'train_conllu_fpath' in training_config else None
         self._dev_txt_fpath = training_config['dev_txt_fpath'] if 'dev_txt_fpath' in training_config else None
         self._dev_conllu_fpath = training_config['dev_conllu_fpath'] if 'dev_conllu_fpath' in training_config else None
+        self._test_conllu_fpath = training_config['test_conllu_fpath'] if 'test_conllu_fpath' in training_config else None
         # the following variables are used for NER training
         self._train_bio_fpath = training_config['train_bio_fpath'] if 'train_bio_fpath' in training_config else None
         self._dev_bio_fpath = training_config['dev_bio_fpath'] if 'dev_bio_fpath' in training_config else None
 
         self.master_config.train_conllu_fpath = self._train_conllu_fpath
         self.master_config.dev_conllu_fpath = self._dev_conllu_fpath
+        self.master_config.test_conllu_fpath = self._test_conllu_fpath
 
         if self._task == 'tokenize':
             assert self._train_txt_fpath and self._train_conllu_fpath and self._dev_txt_fpath and self._dev_conllu_fpath, 'Missing one of these files: (i) train/dev txt file containing raw text (ii) train/dev conllu file containing annotated labels'
         elif self._task in ['posdep', 'mwt', 'lemmatize']:
-            assert self._train_conllu_fpath and self._dev_conllu_fpath, 'Missing one of these files: train/dev conllu file containing annotated labels'
+            assert self._train_conllu_fpath and self._dev_conllu_fpath and self._test_conllu_fpath, 'Missing one of these files: train/dev/test conllu file containing annotated labels'
         elif self._task == 'ner':
             assert self._train_bio_fpath and self._dev_bio_fpath, 'Missing one of these files: train/dev BIO file containing annotated NER labels'
         # detect if text in this language is split by spaces or not
@@ -211,7 +212,7 @@ class TPipeline:
 
         # wordpiece splitter
         if self._task not in ['mwt', 'lemmatize']:
-            self.master_config.wordpiece_splitter = XLMRobertaTokenizer.from_pretrained(self.master_config.embedding_name,
+            self.master_config.wordpiece_splitter = AutoTokenizer.from_pretrained(self.master_config.embedding_name,
                                                                                    cache_dir=self.master_config._save_dir)
 
     def _prepare_tokenize(self):
@@ -244,15 +245,18 @@ class TPipeline:
 
     def _prepare_posdep(self):
         in_conllu = {
-            'dev': os.path.join(self._config._save_dir, 'preds', 'mwt.dev.conllu')
+            'dev': os.path.join(self._config._save_dir, 'preds', 'mwt.dev.conllu'),
+            'test': os.path.join(self._config._save_dir, 'preds', 'mwt.test.conllu')
         }
         if not os.path.exists(in_conllu['dev']):
             in_conllu = {
-                'dev': os.path.join(self._config._save_dir, 'preds', 'tokenizer.dev.conllu')
+                'dev': os.path.join(self._config._save_dir, 'preds', 'tokenizer.dev.conllu'),
+                'test': os.path.join(self._config._save_dir, 'preds', 'tokenizer.test.conllu')
             }
             if not os.path.exists(in_conllu['dev']):
                 in_conllu = {
-                    'dev': self._dev_conllu_fpath
+                    'dev': self._dev_conllu_fpath,
+                    'test': self._test_conllu_fpath
                 }
 
         self.train_set = TaggerDataset(
@@ -283,6 +287,16 @@ class TPipeline:
         self.dev_set.numberize()
         self.dev_batch_num = len(self.dev_set) // self._config.batch_size + \
                              (len(self.dev_set) % self._config.batch_size != 0)
+
+        self.test_set = TaggerDataset(
+            self._config,
+            input_conllu=in_conllu['test'],
+            gold_conllu=self._test_conllu_fpath,
+            evaluate=True
+        )
+        self.test_set.numberize()
+        self.test_batch_num = len(self.test_set) // self._config.batch_size + \
+                             (len(self.test_set) % self._config.batch_size != 0)
 
     def _prepare_lemma(self):
         return None
@@ -511,6 +525,10 @@ class TPipeline:
             remove_with_path(pred_conllu_fpath)
             self._printlog('-' * 30 + ' Best dev CoNLLu score: epoch {}'.format(best_epoch) + '-' * 30)
             self._printlog(get_ud_performance_table(dev_score))
+        test_score, test_conllu_fpath = self._eval_posdep(data_set=self.test_set, batch_num=self.test_batch_num,
+                                                             name='test', epoch=epoch)
+        self._printlog(f"Test prediction written to {test_conllu_fpath}")
+        self._printlog(get_ud_performance_table(test_score))
 
     def _eval_posdep(self, data_set, batch_num, name, epoch):
         self._embedding_layers.eval()
