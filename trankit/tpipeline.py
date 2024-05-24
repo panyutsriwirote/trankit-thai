@@ -522,13 +522,12 @@ class TPipeline:
                     pred_conllu_fpath,
                     os.path.join(self._config._save_dir, 'preds', 'tagger.dev.conllu')
                 )
+                test_score, _ = self._eval_posdep(data_set=self.test_set, batch_num=self.test_batch_num,
+                                                                    name='test', epoch=epoch)
+                self._printlog(get_ud_performance_table(test_score))
             remove_with_path(pred_conllu_fpath)
             self._printlog('-' * 30 + ' Best dev CoNLLu score: epoch {}'.format(best_epoch) + '-' * 30)
             self._printlog(get_ud_performance_table(dev_score))
-        test_score, test_conllu_fpath = self._eval_posdep(data_set=self.test_set, batch_num=self.test_batch_num,
-                                                             name='test', epoch=epoch)
-        self._printlog(f"Test prediction written to {test_conllu_fpath}")
-        self._printlog(get_ud_performance_table(test_score))
 
     def _eval_posdep(self, data_set, batch_num, name, epoch):
         self._embedding_layers.eval()
