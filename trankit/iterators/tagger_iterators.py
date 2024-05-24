@@ -288,6 +288,12 @@ class TaggerDataset(Dataset):
 
     def numberize(self):
         wordpiece_splitter = self.config.wordpiece_splitter
+        if self.config.embedding_name.startswith("xlm"):
+            bos = [0]
+            eos = [2]
+        else:
+            bos = [5]
+            eos = [6]
         data = []
         for inst in self.data:
             words = inst['words']
@@ -308,7 +314,7 @@ class TaggerDataset(Dataset):
 
             # Pad word pieces with special tokens
             #            <s>                                                          </s>
-            piece_idxs = [5] + wordpiece_splitter.convert_tokens_to_ids(flat_pieces) + [6]
+            piece_idxs = bos + wordpiece_splitter.convert_tokens_to_ids(flat_pieces) + eos
             assert len(piece_idxs) <= self.config.max_input_length
 
             attn_masks = [1] * len(piece_idxs)
