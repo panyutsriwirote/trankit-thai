@@ -522,8 +522,13 @@ class TPipeline:
                     pred_conllu_fpath,
                     os.path.join(self._config._save_dir, 'preds', 'tagger.dev.conllu')
                 )
-                test_score, _ = self._eval_posdep(data_set=self.test_set, batch_num=self.test_batch_num,
+                test_score, test_conllu_fpath = self._eval_posdep(data_set=self.test_set, batch_num=self.test_batch_num,
                                                                     name='test', epoch=epoch)
+                remove_with_path(os.path.join(self._config._save_dir, 'preds', 'tagger.test.conllu'))
+                os.rename(
+                    test_conllu_fpath,
+                    os.path.join(self._config._save_dir, 'preds', 'tagger.test.conllu')
+                )
                 self._printlog(get_ud_performance_table(test_score))
             remove_with_path(pred_conllu_fpath)
             self._printlog('-' * 30 + ' Best dev CoNLLu score: epoch {}'.format(best_epoch) + '-' * 30)
