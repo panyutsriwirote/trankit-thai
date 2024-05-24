@@ -152,7 +152,7 @@ class TPipeline:
         elif self._task == 'ner':
             assert self._train_bio_fpath and self._dev_bio_fpath, 'Missing one of these files: train/dev BIO file containing annotated NER labels'
         # detect if text in this language is split by spaces or not
-        self._text_split_by_space = self._detect_split_by_space_lang(self._train_txt_fpath)
+        self._text_split_by_space = False # self._detect_split_by_space_lang(self._train_txt_fpath)
         if not self._text_split_by_space:
             treebank_name = 'UD_Japanese-like'  # use this special name to note that text is not split by spaces, similar to Japanese language.
         else:
