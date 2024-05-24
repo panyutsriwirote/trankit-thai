@@ -1,4 +1,4 @@
-adapters>=0.1.1
+# adapters>=0.1.1
 transformers
 numpy
 protobuf
